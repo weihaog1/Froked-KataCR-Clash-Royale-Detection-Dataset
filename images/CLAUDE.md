@@ -12,7 +12,7 @@ The dataset feeds a synthetic data generation pipeline that creates training ima
 images/
   segment/                    # Sprite cutouts - source material for synthetic training data
     backgrounds/              # 28 arena background images (27 arenas + 1 red_bound)
-    {class_name}/             # 154 class directories, 4,627 transparent PNGs total
+    {class_name}/             # 154 class directories, 4,232 transparent PNGs total
   part2/                      # Human-labeled gameplay frames - validation data ONLY
     {video_name}/{episode}/   # 7,380 frames across 18 video sources
     ClashRoyale_detection.yaml  # YOLO dataset config (201 classes including padding)
@@ -31,7 +31,7 @@ This is the most important directory. The synthetic data generator composites th
 
 ### Contents
 
-- **154 class directories** containing **4,627 transparent PNG cutouts** total
+- **154 class directories** containing **4,232 transparent PNG cutouts** total (was 4,785 before non-deck ally cleanup)
 - **28 files in backgrounds/**: `background01.jpg` through `background27.jpg` plus `red_bound.png`
 - Classes cover troops, buildings, spells, towers, UI elements, and special effects
 
@@ -56,13 +56,13 @@ Examples:
 
 ### Ally vs Enemy Sprite Distribution
 
-The dataset has **925 ally (`_0_`) sprites** and **3,627 enemy (`_1_`) sprites**. Most classes only have enemy sprites. Ally sprites exist primarily for:
+After a non-deck ally cleanup (commit d89457d4), the dataset has **605 ally (`_0_`) sprites** (was 1,158) and **3,627 enemy (`_1_`) sprites**. Only 26 of 153 classes retain ally sprites (was 55). Ally sprites now exist only for:
 
-- **KataCR's Hog 2.6 deck**: hog-rider (47 ally), musketeer (75), ice-spirit (48), ice-golem (41), cannon (19), skeleton (95), the-log (25), fireball (19)
-- **Towers and UI**: king-tower, queen-tower, cannoneer-tower, bar, tower-bar, clock, elixir, emote, etc.
-- **A few other units** with sparse ally coverage: knight (21), dark-prince (13), giant (7), goblin (26), golem (8), skeleton-evolution (21), skeleton-dragon (29), etc.
+- **Our RR Hogs deck**: royal-hog (85), royal-recruit (39), zappy (39), flying-machine (37), goblin-cage (20), barbarian-barrel (11), electro-spirit (3), arrows (1)
+- **Towers**: king-tower (29), queen-tower (19), cannoneer-tower (13), dagger-duchess-tower (8)
+- **UI elements**: bar, dirt, elixir, emote, clock, tower-bar, etc.
 
-This ally sprite gap is the primary reason this fork exists. Without ally sprites for a given card, the synthetic generator cannot create training images showing that unit on the blue (player) side.
+Non-deck ally sprites (including KataCR's Hog 2.6 deck) were removed because those units never appear as allies in our gameplay. Recoverable via `git checkout d89457d4~1 -- images/segment/`.
 
 ### How the Generator Uses This
 

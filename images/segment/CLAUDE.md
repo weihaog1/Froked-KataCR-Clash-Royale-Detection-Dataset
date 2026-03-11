@@ -10,8 +10,8 @@ This repository is a fork of the KataCR Clash Royale Detection Dataset (https://
 
 - **153 class subdirectories** - each contains transparent PNG cutouts of a specific Clash Royale entity class
 - **1 `backgrounds/` directory** - 27 arena background JPGs (background01.jpg through background27.jpg, numbered with gaps) plus 1 utility PNG (`red_bound.png`)
-- **4,626 sprite cutout PNGs** across all class directories
-- **Total: 4,654 image files** (sprites + backgrounds)
+- **4,204 sprite cutout PNGs** across all class directories (was 4,626 before non-deck ally cleanup)
+- **Total: 4,232 image files** (sprites + backgrounds)
 
 ## File Naming Convention
 
@@ -66,83 +66,37 @@ Each training epoch generates ~20,000 unique synthetic images. The model never s
 
 **Important: We only use `background15` for training.** This is a stone/railroad-themed arena that matches our actual gameplay environment (Google Play Games on PC). Using all 27 backgrounds would introduce unnecessary visual domain gap from arena styles we never encounter during real gameplay.
 
-## The Ally Sprite Gap (CRITICAL PROBLEM)
+## Ally Sprite Distribution (After Non-Deck Cleanup)
 
-Of the 153 class directories, **105 contain ONLY enemy (`_1_`) sprites**. Only 48 directories have any ally (`_0_`) sprites at all, and 8 of those are non-side-specific UI elements (elixir, emote, clock, etc.).
+After a cleanup pass (commit d89457d4), ally sprites for all non-deck troop classes were removed. Only our RR Hogs deck cards, towers, and UI elements retain ally sprites. This is intentional -- in real gameplay only our 8 deck cards ever appear as allies, so non-deck ally sprites would teach the model incorrect belonging patterns.
 
-The dataset is heavily skewed: **925 ally sprites vs. 3,627 enemy sprites**.
+**Current state: 605 ally sprites vs. 3,627 enemy sprites across 26 classes with allies.**
+**Before cleanup: 1,158 ally sprites across 55 classes.**
 
-### Why This Is a Problem
+### Classes WITH Ally Sprites (26 classes)
 
-The belong flag (`_0_` or `_1_`) controls which half of the arena the sprite appears on during synthetic generation. If a unit class has zero ally sprites, the generator can only ever place it as an enemy (top half). The YOLOv8 model then learns "this unit only appears on the enemy side," which is wrong when the player deploys that same unit. This breaks side attribution during real gameplay.
-
-KataCR's ally sprites primarily cover their specific deck (Hog 2.6 Cycle: hog-rider, musketeer, ice-spirit, ice-golem, cannon, skeleton, the-log, fireball). If our deck uses units outside that set - and most units ARE outside that set - we have a belong classification problem.
-
-**This is the reason we forked this repository**: to add our own ally cutouts for the units in our deck.
-
-### Classes WITH Ally Sprites
-
-**Classes with substantial ally representation (10+ ally sprites):**
-
-| Class | Ally | Enemy | Notes |
-|-------|------|-------|-------|
-| skeleton | 95 | 53 | KataCR Hog 2.6 deck |
-| musketeer | 75 | 12 | KataCR Hog 2.6 deck |
-| bar | 61 | 75 | UI health bar |
-| ice-spirit | 48 | 18 | KataCR Hog 2.6 deck |
-| hog-rider | 47 | 21 | KataCR Hog 2.6 deck |
-| ice-golem | 41 | 13 | KataCR Hog 2.6 deck |
-| elixir | 32 | 0 | Non-side-specific UI |
-| dirt | 30 | 0 | Non-side-specific effect |
-| evolution-symbol | 29 | 0 | Non-side-specific UI |
-| skeleton-dragon | 29 | 72 | |
-| king-tower | 29 | 47 | Tower (always both sides) |
-| goblin | 26 | 37 | |
-| the-log | 25 | 9 | KataCR Hog 2.6 deck |
-| emote | 25 | 0 | Non-side-specific UI |
-| tower-bar | 23 | 23 | UI element |
-| dagger-duchess-tower-bar | 22 | 0 | UI element |
-| skeleton-evolution | 21 | 25 | |
-| knight | 21 | 32 | |
-| queen-tower | 19 | 35 | Tower (always both sides) |
-| cannon | 19 | 6 | KataCR Hog 2.6 deck |
-| fireball | 19 | 18 | KataCR Hog 2.6 deck |
-| axe | 18 | 0 | Non-side-specific projectile |
-| small-text | 17 | 0 | Non-side-specific UI |
-| clock | 17 | 13 | Non-side-specific UI |
-| bomber-evolution | 16 | 14 | |
-| cannoneer-tower | 13 | 7 | Tower |
-| dark-prince | 13 | 21 | |
-| king-tower-bar | 10 | 7 | UI element |
-
-**Classes with minimal ally representation (1-9 ally sprites):**
+**Our RR Hogs deck (8 classes):**
 
 | Class | Ally | Enemy |
 |-------|------|-------|
-| bar-level | 9 | 13 |
-| dagger-duchess-tower | 8 | 10 |
-| golem | 8 | 22 |
-| golemite | 8 | 18 |
-| giant | 7 | 16 |
-| big-text | 6 | 0 |
-| elite-barbarian | 6 | 28 |
-| spear-goblin | 6 | 85 |
-| ice-spirit-evolution | 5 | 6 |
-| battle-ram | 3 | 18 |
-| mighty-miner | 3 | 13 |
-| background-items | 2 | 2 |
-| goblin-cage | 2 | 2 |
-| goblin-hut | 2 | 1 |
-| mortar | 2 | 8 |
-| royal-giant | 2 | 8 |
-| tesla-evolution | 2 | 10 |
-| valkyrie | 2 | 20 |
-| firecracker | 1 | 25 |
-| goblin-drill | 1 | 7 |
+| royal-hog | 85 | 27 |
+| royal-recruit | 39 | 67 |
+| zappy | 39 | 30 |
+| flying-machine | 37 | 25 |
+| goblin-cage | 20 | 2 |
+| barbarian-barrel | 11 | 8 |
+| electro-spirit | 3 | 20 |
+| arrows | 1 | 6 |
 
-### Classes with ZERO Ally Sprites (105 classes)
+**Towers (4 classes):**
+king-tower (29), queen-tower (19), cannoneer-tower (13), dagger-duchess-tower (8)
 
-All remaining 105 class directories contain only enemy sprites. Notable examples that could appear in a player's deck: archer (44 enemy), barbarian (42), wizard (41), baby-dragon (35), bandit (36), pekka (22), mini-pekka (26), prince (58), mega-knight (60), lumberjack (22), witch (17), balloon (8), and all evolution variants except bomber-evolution, skeleton-evolution, ice-spirit-evolution, and tesla-evolution.
+**UI/non-side elements (14 classes):**
+bar (61), dirt (30), evolution-symbol (29), elixir (32), emote (25), tower-bar (23), dagger-duchess-tower-bar (22), axe (18), clock (17), small-text (17), king-tower-bar (10), bar-level (9), big-text (6), background-items (2)
+
+### Classes with ZERO Ally Sprites (127 classes)
+
+All remaining 127 class directories contain only enemy sprites. This includes KataCR's original Hog 2.6 ally sprites (hog-rider, musketeer, ice-spirit, ice-golem, cannon, skeleton, the-log, fireball) and sparse allies from other units, all removed because they would never appear as allies in our gameplay. Recoverable via `git checkout d89457d4~1 -- images/segment/`.
 
 ## Class Categories
 

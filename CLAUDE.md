@@ -36,7 +36,7 @@ KataCR's approach (which we follow): Train ONLY on synthetic data, validate on r
 ```
 Froked-KataCR-Clash-Royale-Detection-Dataset/
   images/
-    segment/                # 4,627 sprite cutouts across 154 classes (TRAINING data source)
+    segment/                # 4,232 sprite cutouts across 154 classes (TRAINING data source)
       backgrounds/          # 28 arena background images (background01.jpg - background28.jpg)
       {class_name}/         # Transparent PNG cutouts per unit class
     part2/                  # 7,380 human-labeled gameplay frames (VALIDATION data only)
@@ -78,36 +78,33 @@ Examples:
 
 All sprites are transparent PNGs suitable for compositing onto arena backgrounds.
 
-## Ally vs Enemy Sprite Gap (The Key Problem)
+## Ally vs Enemy Sprite Distribution
 
-Most classes only have ENEMY (`_1_`) sprites. Only a subset have ALLY (`_0_`) sprites. This is the primary reason this fork exists.
+After a cleanup pass (commit d89457d4), ally sprites were removed for all non-deck troop classes. Only our RR Hogs deck cards, towers, and UI elements retain ally sprites. 127 of 153 classes now have zero ally sprites (up from 98 before cleanup). This is intentional -- in real gameplay, only our 8 deck cards ever appear as allies.
 
-### Classes WITH ally (`_0_`) sprites
+### Classes WITH ally (`_0_`) sprites (26 classes)
 
-**Hog 2.6 deck (KataCR's deck) - well-represented:**
+**Our RR Hogs deck:**
 | Class | Ally Count | Enemy Count |
 |-------|-----------|-------------|
-| hog-rider | 47 | 21 |
-| musketeer | 75 | 12 |
-| ice-spirit | 48 | - |
-| ice-golem | 41 | - |
-| cannon | 19 | - |
-| skeleton | 95 | - |
-| the-log | 25 | - |
-| fireball | 19 | - |
+| royal-hog | 85 | 27 |
+| royal-recruit | 39 | 67 |
+| zappy | 39 | 30 |
+| flying-machine | 37 | 25 |
+| goblin-cage | 20 | 2 |
+| barbarian-barrel | 11 | 8 |
+| electro-spirit | 3 | 20 |
+| arrows | 1 | 6 |
 
-**Towers and UI elements:**
-king-tower (29), queen-tower (19), cannoneer-tower (13), dagger-duchess-tower (8), bar (61), bar-level (9), tower-bar (23), king-tower-bar (10), dagger-duchess-tower-bar (22)
+**Towers:**
+king-tower (29), queen-tower (19), cannoneer-tower (13), dagger-duchess-tower (8)
 
-**Non-side elements:**
-clock (17), elixir (32), emote (25), dirt (30), evolution-symbol (29), big-text (6), small-text (17), background-items (2), axe (18)
+**UI/non-side elements:**
+bar (61), bar-level (9), tower-bar (23), king-tower-bar (10), dagger-duchess-tower-bar (22), clock (17), elixir (32), emote (25), dirt (30), evolution-symbol (29), big-text (6), small-text (17), background-items (2), axe (18)
 
-**Other units with some ally sprites (sparse):**
-knight (21), dark-prince (13), elite-barbarian (6), giant (7), goblin (26), golem (8), golemite (8), skeleton-evolution (21), skeleton-dragon (29), bomber-evolution (16), battle-ram (3), firecracker (1), goblin-cage (2), goblin-drill (1), goblin-hut (2), mortar (2), royal-giant (2), spear-goblin (6), tesla-evolution (2), valkyrie (2), mighty-miner (3), ice-spirit-evolution (5)
+### Classes WITHOUT any ally sprites (127 classes)
 
-### Classes WITHOUT any ally sprites (examples)
-
-archer, baby-dragon, bandit, barbarian, bowler, electro-wizard, and many others. These units can only appear as enemies in synthetic training data. If our deck contains any of these units, the model will not learn their ally appearance.
+All other classes, including KataCR's original Hog 2.6 ally sprites (hog-rider, musketeer, ice-spirit, ice-golem, cannon, skeleton, the-log, fireball) and sparse allies from other units. These were removed because they would never appear as allies in our gameplay. Recoverable via `git checkout d89457d4~1 -- images/segment/`.
 
 ## YOLO Label Format (part2)
 
@@ -141,7 +138,7 @@ The full class list is defined in KataCR's source at `katacr/constants/label_lis
 
 | Metric | Value |
 |--------|-------|
-| Total sprite cutouts | 4,627 PNGs across 154 classes |
+| Total sprite cutouts | 4,232 PNGs across 154 classes (was 4,785 before ally cleanup) |
 | Arena backgrounds | 28 (we only use background15 to match our gameplay arena) |
 | Validation images | 7,380 human-labeled gameplay frames |
 | Card classification images | 228 (Hog 2.6 deck only) |
@@ -157,8 +154,7 @@ The synthetic generator finds this dataset via `constant.py` in the generation c
 
 ## What We Need To Add
 
-1. **Ally sprite cutouts for our deck's cards** - Transparent PNGs following the `{class_name}_0_{id}.png` naming convention, placed in the appropriate `images/segment/{class_name}/` directories
-2. **Potentially: card_classification images for our deck** - The existing card classification images are for Hog 2.6 only and not useful for our deck
+1. **Potentially: card_classification images for our deck** - The existing card classification images are for Hog 2.6 only and not useful for our deck
 
 ## Related Project Files
 
